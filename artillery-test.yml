@@ -1,0 +1,11 @@
+# artillery-test.yml
+config:
+  target: "http://localhost:8088"
+  phases:
+    - duration: 60        # 테스트 지속 시간 (초)
+      arrivalRate: 500    # 초당 접속 사용자 수
+      rampTo: 1000        # 점점 늘려서 최대 1000명/초 (총합 약 5만 요청 가능)
+scenarios:
+  - flow:
+      - get:
+          url: "/api/list"

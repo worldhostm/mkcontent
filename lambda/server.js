@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const multer = require("multer");
 const path = require("path");
 const Contents = require('./models/Contents.ts');
-require('dotenv').config();
 
 const app = express();
 const port = 8088;
@@ -19,9 +18,7 @@ const startPublishScheduler = require('./cron/publishScheduler.ts');
 startPublishScheduler();
 
 // MongoDB 연결
-// `${process.env.MONGODB_URL}`
-//mongodb://localhost:27017
-mongoose.connect(`mongodb://localhost:27017`,{maxPoolSize:500})
+mongoose.connect('mongodb://localhost:27017',{maxPoolSize:500})
 .then(() => console.log('✅ MongoDB 연결 성공'))
 .catch(err => console.error('❌ MongoDB 연결 실패:', err));
 
