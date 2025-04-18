@@ -27,14 +27,14 @@ mongoose.connect(`mongodb://localhost:27017`,{maxPoolSize:500})
 
 // API: 텍스트 저장
 app.post('/api/save', async (req, res) => {
-  const { title, content, status} = req.body;
+  const { title, content, status, thumbnail} = req.body;
 
   if (!content) {
     return res.status(400).json({ error: '내용이 비어 있습니다.' });
   }
 
   try {
-    const newText = new Contents({ title,content, status });
+    const newText = new Contents({ title,content, status, thumbnail });
     const savedText = await newText.save();
     res.status(201).json(savedText);
   } catch (err) {

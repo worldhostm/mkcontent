@@ -3,9 +3,11 @@ const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const contentsSchema = new mongoose.Schema({
   id: Number, // 시퀀스로 증가할 필드
-  title:String,
-  content: String,
-  status: {
+  title:String, // 제목
+  content: String, // html로된 데이터
+  thumbnail:String, // 썸네일 이미지 경로 
+  // 발행 상태값
+  status: {  
     type: String,
     enum: ['draft', 'scheduled', 'published'],
     default: 'draft',
