@@ -83,6 +83,9 @@ app.post("/api/upload", upload.single("image"), (req, res) => {
   res.json({ url: imageUrl });
 });
 
+const presignRouter = require('./routes/presign'); // 경로 정확히
+app.use('/', presignRouter); // ✅ 반드시 있어야 함
+
 app.listen(port, () => {
   console.log(`🚀 서버 실행 중: http://localhost:${port}`);
 });
