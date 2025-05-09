@@ -5,12 +5,13 @@ const bodyParser = require('body-parser');
 const multer = require("multer");
 const path = require("path");
 const Contents = require('./models/Contents.ts');
+const authRoutes = require('./routes/auth');
 require('dotenv').config();
 
 const app = express();
 const port = 8088;
 
-// 미들웨어
+// 미들웨어                                                                                                    
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -24,6 +25,26 @@ startPublishScheduler();
 mongoose.connect(`mongodb://localhost:27017`,{maxPoolSize:500})
 .then(() => console.log('✅ MongoDB 연결 성공'))
 .catch(err => console.error('❌ MongoDB 연결 실패:', err));
+
+
+// (async () => {
+//   const username = 'admin';
+//   const plainPassword = 'chancewave230719@';
+//   const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+//   const existing = await User.findOne({ username });
+//   if (!existing) {
+//     await User.create({ username, password: hashedPassword });
+//     console.log('✅ Admin user created');
+//   } else {
+//     console.log('ℹ️ Admin user already exists');
+//   }
+
+//   mongoose.disconnect();
+// })();
+
+// 라우터 등록
+app.use('/api', authRoutes);
 
 // API: 텍스트 저장
 app.post('/api/save', async (req, res) => {
