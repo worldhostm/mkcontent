@@ -69,7 +69,7 @@ app.post('/api/save', async (req, res) => {
 // API: 텍스트 전체 조회
 app.get('/api/list', async (req, res) => {
   try {
-    const contents = await Contents.find().sort({ createdAt: -1 }); // 최신순
+    const contents = await Contents.find().sort({ createdAt: -1 }).select('-content'); // 최신순
     res.json(contents);
   } catch (err) {
     res.status(500).json({ error: '조회 중 오류 발생', details: err });
