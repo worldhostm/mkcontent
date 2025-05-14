@@ -6,6 +6,7 @@ const multer = require("multer");
 const path = require("path");
 const Contents = require('./models/Contents.ts');
 const authRoutes = require('./routes/auth');
+const morgan = require('morgan');
 require('dotenv').config();
 
 const app = express();
@@ -14,6 +15,8 @@ const port = 8088;
 // 미들웨어                                                                                                    
 app.use(cors());
 app.use(bodyParser.json());
+app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
+
 
 const startPublishScheduler = require('./cron/publishScheduler.ts');
 
@@ -91,6 +94,27 @@ app.get('/api/detail/:id', async (req, res) => {
       res.json(content);
     } catch (err) {
       res.status(500).json({ error: '상세 조회 중 오류 발생', details: err });
+    }
+  });
+
+// API: 특정 글 삭제
+  app.delete('/api/detail/:id', async (req, res) => {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'ID는 숫자여야 합니다.' });
+    }
+
+    try {
+      const result = await Contents.deleteOne({ id });
+      
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: '해당 항목을 찾을 수 없습니다.' });
+      }
+      
+      res.json({ success: true, message: '삭제되었습니다.' });
+    } catch (err) {
+      res.status(500).json({ error: '삭제 중 오류 발생', details: err.message });
     }
   });
 

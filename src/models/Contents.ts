@@ -6,6 +6,10 @@ const contentsSchema = new mongoose.Schema({
   title:String, // 제목
   content: String, // html로된 데이터
   thumbnail:String, // 썸네일 이미지 경로 
+  hashtags : {
+    type : [String],
+    default:[]
+  },
   // 발행 상태값
   status: {  
     type: String,
