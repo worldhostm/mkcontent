@@ -7,7 +7,35 @@ const path = require("path");
 const Contents = require('./models/Contents.ts');
 const authRoutes = require('./routes/auth');
 const morgan = require('morgan');
+const os = require('os');
 require('dotenv').config();
+
+// CPU 사용량을 백분율로 계산하는 함수
+function getCpuUsage() {
+  const cpus = os.cpus();
+  let totalIdle = 0;
+  let totalTick = 0;
+
+  cpus.forEach(cpu => {
+    totalIdle += cpu.times.idle;
+    totalTick += Object.values(cpu.times).reduce((prev, now) => prev + now, 0);
+  });
+
+  const idle = totalIdle - prevIdle;
+  const tick = totalTick - prevTick;
+  const usage = 1 - (idle / tick);
+
+  prevIdle = totalIdle;
+  prevTick = totalTick;
+
+  return Math.round(usage * 100) + '%';
+}
+
+// Morgan에 'cpu'라는 새로운 토큰 추가
+morgan.token('cpu', (req, res) => {
+  return getCpuUsage();
+});
+
 
 const app = express();
 const port = 8088;
@@ -15,7 +43,8 @@ const port = 8088;
 // 미들웨어                                                                                                    
 app.use(cors());
 app.use(bodyParser.json());
-app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
+app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms - CPU: :cpu'));
+
 
 
 const startPublishScheduler = require('./cron/publishScheduler.ts');
