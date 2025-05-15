@@ -8,11 +8,12 @@ const Contents = require('./models/Contents.ts');
 const authRoutes = require('./routes/auth');
 const morgan = require('morgan');
 const os = require('os');
+const redis = require('redis');
 require('dotenv').config();
-
 
 let prevIdle = 0;
 let prevTick = 0;
+
 // CPU 사용량을 백분율로 계산하는 함수
 function getCpuUsage() {
   const cpus = os.cpus();
@@ -49,7 +50,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
 
-
+// ✅ Redis client 연결
+const redisClient = redis.createClient({ url: 'redis://localhost:6379' });
+redisClient.connect(); // redis v4 이후 반드시 connect 필요
 
 const startPublishScheduler = require('./cron/publishScheduler.ts');
 
@@ -100,34 +103,49 @@ app.post('/api/save', async (req, res) => {
 });
 
 // API: 텍스트 전체 조회
+// ✅ 전체 조회 API + Redis 캐시 적용
 app.get('/api/list', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;                    // current page
-  const itemsPerPage = parseInt(req.query.itemsPerPage) || 10;  // items per page
+  const page = parseInt(req.query.page) || 1;
+  const itemsPerPage = parseInt(req.query.itemsPerPage) || 10;
   const offset = (page - 1) * itemsPerPage;
 
+  // ✅ 캐시 key 생성
+  const cacheKey = `contents:page=${page}:itemsPerPage=${itemsPerPage}`;
+
   try {
-    // 전체 데이터 개수 (프론트 totalItems 용)
-    const totalItems = await Contents.countDocuments();
+      // ✅ 1️⃣ Redis 캐시 조회
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) {
+          console.log(`Cache hit: ${cacheKey}`);
+          return res.json(JSON.parse(cachedData));
+      }
 
-    // offset + limit pagination
-    const contents = await Contents.find()
-      .sort({ createdAt: -1 })   // 최신순
-      .skip(offset)
-      .limit(itemsPerPage)
-      .select('-content')        // 불필요한 필드 제외
-      .lean();
+      // ✅ 2️⃣ 캐시 miss → MongoDB 조회
+      const totalItems = await Contents.countDocuments();
+      const contents = await Contents.find()
+          .sort({ createdAt: -1 })
+          .skip(offset)
+          .limit(itemsPerPage)
+          .select('-content')
+          .lean();
 
-    res.json({
-      data: contents,
-      currentPage: page,
-      itemsPerPage: itemsPerPage,
-      totalItems: totalItems,
-      totalPages: Math.ceil(totalItems / itemsPerPage)
-    });
+      const response = {
+          data: contents,
+          currentPage: page,
+          itemsPerPage: itemsPerPage,
+          totalItems: totalItems,
+          totalPages: Math.ceil(totalItems / itemsPerPage)
+      };
+
+      // ✅ 3️⃣ Redis 캐시 저장 (TTL: 60초)
+      await redisClient.setEx(cacheKey, 60, JSON.stringify(response));
+
+      res.json(response);
   } catch (err) {
-    res.status(500).json({ error: '조회 중 오류 발생', details: err });
+      res.status(500).json({ error: '조회 중 오류 발생', details: err.message });
   }
 });
+
 
 // API: 특정 텍스트 상세 조회
 app.get('/api/detail/:id', async (req, res) => {
