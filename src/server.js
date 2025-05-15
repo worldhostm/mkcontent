@@ -138,7 +138,7 @@ app.get('/api/list', async (req, res) => {
       };
 
       // ✅ 3️⃣ Redis 캐시 저장 (TTL: 60초)
-      await redisClient.setEx(cacheKey, 60, JSON.stringify(response));
+      await redisClient.setEx(cacheKey, 300, JSON.stringify(response));
 
       res.json(response);
   } catch (err) {
