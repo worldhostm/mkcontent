@@ -68,9 +68,29 @@ app.post('/api/save', async (req, res) => {
 
 // API: 텍스트 전체 조회
 app.get('/api/list', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;                    // current page
+  const itemsPerPage = parseInt(req.query.itemsPerPage) || 10;  // items per page
+  const offset = (page - 1) * itemsPerPage;
+
   try {
-    const contents = await Contents.find().sort({ createdAt: -1 }).select('-content'); // 최신순
-    res.json(contents);
+    // 전체 데이터 개수 (프론트 totalItems 용)
+    const totalItems = await Contents.countDocuments();
+
+    // offset + limit pagination
+    const contents = await Contents.find()
+      .sort({ createdAt: -1 })   // 최신순
+      .skip(offset)
+      .limit(itemsPerPage)
+      .select('-content')        // 불필요한 필드 제외
+      .lean();
+
+    res.json({
+      data: contents,
+      currentPage: page,
+      itemsPerPage: itemsPerPage,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / itemsPerPage)
+    });
   } catch (err) {
     res.status(500).json({ error: '조회 중 오류 발생', details: err });
   }
