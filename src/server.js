@@ -51,7 +51,7 @@ app.use(bodyParser.json());
 app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
 
 // ✅ Redis client 연결
-const redisClient = redis.createClient({ url: 'redis://localhost:6379' });
+const redisClient = redis.createClient({ url: 'redis://127.0.0.1:6379' });
 redisClient.connect(); // redis v4 이후 반드시 connect 필요
 
 const startPublishScheduler = require('./cron/publishScheduler.ts');
