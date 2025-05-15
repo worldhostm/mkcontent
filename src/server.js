@@ -10,6 +10,9 @@ const morgan = require('morgan');
 const os = require('os');
 require('dotenv').config();
 
+
+let prevIdle = 0;
+let prevTick = 0;
 // CPU 사용량을 백분율로 계산하는 함수
 function getCpuUsage() {
   const cpus = os.cpus();
@@ -31,11 +34,12 @@ function getCpuUsage() {
   return Math.round(usage * 100) + '%';
 }
 
-// Morgan에 'cpu'라는 새로운 토큰 추가
-morgan.token('cpu', (req, res) => {
-  return getCpuUsage();
-});
 
+// 30초마다 CPU 사용량을 콘솔에 로깅
+setInterval(() => {
+  const cpuUsage = getCpuUsage();
+  console.log(`[System] CPU Usage (${new Date().toISOString()}): ${cpuUsage}`);
+}, 15000); // 30000 milliseconds = 30 seconds
 
 const app = express();
 const port = 8088;
@@ -43,7 +47,7 @@ const port = 8088;
 // 미들웨어                                                                                                    
 app.use(cors());
 app.use(bodyParser.json());
-app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms - CPU: :cpu'));
+app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
 
 
 
