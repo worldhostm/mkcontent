@@ -155,14 +155,25 @@ app.get('/api/detail/:id', async (req, res) => {
       return res.status(400).json({ error: 'ID는 숫자여야 합니다.' });
     }
 
+    const cacheKey = `content:${id}`;
+
+
     try {
+
+      const cached = await redisClient.get(cacheKey);
+      if (cached) {
+        return res.json(JSON.parse(cached));
+      }
+
       const content = await Contents.findOne({id});
   
       if (!content) {
         return res.status(404).json({ error: '해당 항목을 찾을 수 없습니다.' });
       }
-  
-      res.json(content);
+       // 3. Redis 캐시 저장 (예: 1시간 TTL)
+      await redisClient.setEx(cacheKey, 3600, JSON.stringify(content));
+
+      return res.json(content);
     } catch (err) {
       res.status(500).json({ error: '상세 조회 중 오류 발생', details: err });
     }
