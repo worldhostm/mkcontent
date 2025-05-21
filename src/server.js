@@ -70,23 +70,6 @@ mongoose.connect(`${process.env.MONGO_URL}`,{maxPoolSize:500})
 .then(() => console.log('✅ MongoDB 연결 성공'))
 .catch(err => console.error('❌ MongoDB 연결 실패:', err));
 
-
-(async () => {
-  const username = 'admin';
-  const plainPassword = 'chancewave230719@';
-  const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-  const existing = await User.findOne({ username });
-  if (!existing) {
-    await User.create({ username, password: hashedPassword });
-    console.log('✅ Admin user created');
-  } else {
-    console.log('ℹ️ Admin user already exists');
-  }
-
-  mongoose.disconnect();
-})();
-
 // 라우터 등록
 app.use('/api', authRoutes);
 
