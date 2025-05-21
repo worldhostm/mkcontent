@@ -50,6 +50,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
 
+
+// const cache: Record<string, { data: any; expiresAt: number }> = {}; // 프로세스 캐시
+
 // ✅ Redis client 연결
 const redisClient = redis.createClient({ url: 'redis://127.0.0.1:6379' });
 redisClient.connect(); // redis v4 이후 반드시 connect 필요
@@ -84,6 +87,10 @@ mongoose.connect(`mongodb://localhost:27017`,{maxPoolSize:500})
 
 // 라우터 등록
 app.use('/api', authRoutes);
+
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
 
 // API: 텍스트 저장
 app.post('/api/save', async (req, res) => {
