@@ -66,7 +66,7 @@ startPublishScheduler();
 // MongoDB 연결
 // `${process.env.MONGODB_URL}`
 //mongodb://localhost:27017
-mongoose.connect(`mongodb://localhost:27017`,{maxPoolSize:500})
+mongoose.connect(`${process.env.MONGO_URL}`,{maxPoolSize:500})
 .then(() => console.log('✅ MongoDB 연결 성공'))
 .catch(err => console.error('❌ MongoDB 연결 실패:', err));
 
