@@ -10,6 +10,7 @@ const morgan = require('morgan');
 const os = require('os');
 const redis = require('redis');
 const bcrypt = require('bcrypt');
+const User = require('./models/User.ts');
 require('dotenv').config();
 
 let prevIdle = 0;
