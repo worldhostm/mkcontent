@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const morgan = require('morgan');
 const os = require('os');
 const redis = require('redis');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 let prevIdle = 0;
