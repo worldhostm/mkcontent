@@ -56,7 +56,7 @@ app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
 // const cache: Record<string, { data: any; expiresAt: number }> = {}; // 프로세스 캐시
 
 // ✅ Redis client 연결
-const redisClient = redis.createClient({ url: 'redis://127.0.0.1:6379' });
+const redisClient = redis.createClient({ url: `${process.env.REDIS_URL}` });
 redisClient.connect(); // redis v4 이후 반드시 connect 필요
 
 const startPublishScheduler = require('./cron/publishScheduler.ts');
