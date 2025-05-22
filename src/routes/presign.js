@@ -1,6 +1,7 @@
 const express = require('express')
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
+const { getKoreaTImeStamp } = require('../lib/getKoreaTImeStamp.ts')
 const dotenv = require('dotenv')
 
 dotenv.config()
@@ -22,8 +23,8 @@ router.post('/api/presign', async (req, res) => {
     if (!filename || !contentType) {
       return res.status(400).json({ error: 'filename and contentType are required' })
     }
-
-    const key = `uploads/${Date.now()}-${filename}`
+    const koreatime = getKoreaTImeStamp();
+    const key = `uploads/${koreatime}-${filename}`
 
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,

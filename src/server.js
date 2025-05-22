@@ -13,6 +13,8 @@ const bcrypt = require('bcrypt');
 const User = require('./models/User.ts');
 require('dotenv').config();
 
+mongoose.set('debug', true);
+
 let prevIdle = 0;
 let prevTick = 0;
 
@@ -73,9 +75,9 @@ mongoose.connect(`${process.env.MONGO_URL}`,{maxPoolSize:500})
 // 라우터 등록
 app.use('/api', authRoutes);
 
-app.get('/', (req, res) => {
-  res.status(200).send('OK');
-});
+// app.get('/', (req, res) => {
+//   res.status(200).send('OK');
+// });
 
 // API: 텍스트 저장
 app.post('/api/save', async (req, res) => {
@@ -91,6 +93,32 @@ app.post('/api/save', async (req, res) => {
     res.status(201).json(savedText);
   } catch (err) {
     res.status(500).json({ error: '저장 중 오류 발생', details: err });
+  }
+});
+
+// API: 텍스트 수정
+app.put('/api/update/:id', async (req, res) => {
+  const { id } = req.params;
+  const { _id,title, content, status, thumbnail } = req.body;
+
+  if (!content) {
+    return res.status(400).json({ error: '내용이 비어 있습니다.' });
+  }
+
+  try {
+    const updated = await Contents.findByIdAndUpdate(
+      _id,
+      { title, content, status, thumbnail, updatedAt: new Date() },
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: '해당 데이터를 찾을 수 없습니다.' });
+    }
+    await redisClient.del(`content:${id}`);
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: '수정 중 오류 발생', details: err });
   }
 });
 
@@ -146,12 +174,8 @@ app.get('/api/detail/:id', async (req, res) => {
     if (isNaN(id)) {
       return res.status(400).json({ error: 'ID는 숫자여야 합니다.' });
     }
-
     const cacheKey = `content:${id}`;
-
-
     try {
-
       const cached = await redisClient.get(cacheKey);
       if (cached) {
         return res.json(JSON.parse(cached));
