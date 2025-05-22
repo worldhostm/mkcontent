@@ -59,9 +59,9 @@ app.use(morgan(':date[iso] ▶ :method :url :status :response-time ms'));
 const redisClient = redis.createClient({ url: `${process.env.REDIS_URL}` });
 redisClient.connect(); // redis v4 이후 반드시 connect 필요
 
-const startPublishScheduler = require('./cron/publishScheduler.ts');
+// const startPublishScheduler = require('./cron/publishScheduler.ts');
 
-startPublishScheduler();
+// startPublishScheduler();
 
 // MongoDB 연결
 // `${process.env.MONGODB_URL}`
