@@ -115,6 +115,8 @@ app.put('/api/update/:id', async (req, res) => {
       return res.status(404).json({ error: '해당 데이터를 찾을 수 없습니다.' });
     }
     await redisClient.del(`content:${id}`);
+    await redisClient.del(`contents:list`);
+
 
     res.json(updated);
   } catch (err) {
@@ -130,7 +132,8 @@ app.get('/api/list', async (req, res) => {
   const offset = (page - 1) * itemsPerPage;
 
   // ✅ 캐시 key 생성
-  const cacheKey = `contents:page=${page}:itemsPerPage=${itemsPerPage}`;
+  const cacheKey = `contents:list`;
+  // page=${page}:itemsPerPage=${itemsPerPage};
 
   try {
       // ✅ 1️⃣ Redis 캐시 조회
@@ -206,11 +209,17 @@ app.get('/api/detail/:id', async (req, res) => {
     try {
       const result = await Contents.deleteOne({ id });
       
+      // 상세 캐시 삭제
+      await redisClient.del(`content:${id}`);
+      
+      // 목록 캐시도 삭제 → 다음 요청 시 DB에서 재생성됨
+      await redisClient.del('contents:list'); 
+      
       if (result.deletedCount === 0) {
         return res.status(404).json({ error: '해당 항목을 찾을 수 없습니다.' });
       }
       
-      res.json({ success: true, message: '삭제되었습니다.' });
+      res.status(200).json({ message: '콘텐츠 삭제 완료' });
     } catch (err) {
       res.status(500).json({ error: '삭제 중 오류 발생', details: err.message });
     }
